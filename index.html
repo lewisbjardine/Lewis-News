@@ -893,6 +893,8 @@ function isPaywalled(url) {
 
 /* ========== FETCH NEWS ========== */
 
+/* ========== UPGRADED FETCH NEWS ========== */
+
 async function fetchNews() {
   const enabledTopics = getEnabledTopics();
 
@@ -902,34 +904,67 @@ async function fetchNews() {
     return;
   }
 
-  // NewsData.io expects space-separated keywords (NOT "topic1 OR topic2")
-  const topicQuery = enabledTopics.join(" ");
+  // Limit topics to avoid exceeding quota
+  const topicsToFetch = enabledTopics.slice(0, 5);
 
   try {
-    const url =
-      NEWS_API_ENDPOINT +
-      '?apikey=' + NEWS_API_KEY +
-      '&q=' + encodeURIComponent(topicQuery) +
-      '&language=en' +
-      '&country=gb';
+    const fetchPromises = topicsToFetch.map(async (topic) => {
+      const url =
+        NEWS_API_ENDPOINT +
+        "?apikey=" + NEWS_API_KEY +
+        "&q=" + encodeURIComponent(topic) +
+        "&country=gb" +
+        "&language=en";
 
-    console.log("Fetching:", url);  // Debug
+      console.log("Fetching topic:", topic, " → ", url);
 
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Network error " + res.status);
+      const res = await fetch(url);
+      if (!res.ok) return [];
 
-    const data = await res.json();
-    console.log("Raw API data:", data); // Debug
+      const data = await res.json();
+      if (!data.results) return [];
 
-    const rawArticles = data.results || [];
-    currentArticles = rawArticles
-      .map(mapArticle)
-      .filter(a => a.url && !isPaywalled(a.url));
+      return data.results.map(article => ({
+        ...article,
+        _fetchedFromTopic: topic   // tag source-topic
+      }));
+    });
+
+    // Wait for all topics to fetch
+    const resultsByTopic = await Promise.all(fetchPromises);
+
+    // Flatten & clean
+    let merged = resultsByTopic.flat().map(mapArticle);
+
+    // Filter paywalls
+    merged = merged.filter(a => a.url && !isPaywalled(a.url));
+
+    // Remove duplicates by URL
+    const seen = new Set();
+    merged = merged.filter(a => {
+      if (seen.has(a.url)) return false;
+      seen.add(a.url);
+      return true;
+    });
+
+    // Sort newest first
+    merged.sort((a, b) => {
+      const da = new Date(a.publishedAt || 0).getTime();
+      const db = new Date(b.publishedAt || 0).getTime();
+      return db - da;
+    });
+
+    currentArticles = merged;
+
+    if (merged.length === 0) {
+      console.warn("No real articles found — using fallback.");
+      currentArticles = buildSampleArticles(enabledTopics, true);
+    }
 
     renderFeed();
 
   } catch (err) {
-    console.error("Error fetching news", err);
+    console.error("Fetch error:", err);
     currentArticles = buildSampleArticles(enabledTopics, true);
     renderFeed();
   }
