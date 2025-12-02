@@ -941,13 +941,37 @@ async function fetchNews() {
 
   // ========== IMPROVED DEDUPLICATION ==========
 
-// Helper: normalize URLs
+/* ========== AGGRESSIVE DEDUPLICATION (OPTION C) ========== */
+
+// Basic similarity scoring for strings
+function similarity(a, b) {
+  if (!a || !b) return 0;
+  a = a.toLowerCase();
+  b = b.toLowerCase();
+
+  // Exact match
+  if (a === b) return 1;
+
+  // Partial ratio (substring presence)
+  if (a.includes(b) || b.includes(a)) return 0.85;
+
+  // Token-based similarity
+  const aTokens = new Set(a.split(/\W+/));
+  const bTokens = new Set(b.split(/\W+/));
+
+  let overlap = 0;
+  for (const t of aTokens) if (bTokens.has(t)) overlap++;
+
+  const score = overlap / Math.max(aTokens.size, bTokens.size);
+  return score;
+}
+
+// Normalize URL for better duplicate detection
 function normalizeUrl(url) {
   try {
     const u = new URL(url);
-    // Remove tracking params & junk
-    u.search = "";
-    // Strip mobile subdomains (m., mobile.)
+    u.search = "";  
+    u.hash = "";    
     u.hostname = u.hostname.replace(/^m\./, "").replace(/^mobile\./, "");
     return u.toString();
   } catch {
@@ -955,126 +979,42 @@ function normalizeUrl(url) {
   }
 }
 
-const seenArticles = new Set();
-
-merged = merged.filter(a => {
-  const title = (a.title || "").trim().toLowerCase();
-  const desc = (a.description || "").trim().toLowerCase().slice(0, 80);
-  const url = normalizeUrl(a.url || "");
-
-  // Build a signature that identifies duplicates
-  const signature = `${title}::${desc}::${url}`;
-
-  if (seenArticles.has(signature)) {
-    return false; // duplicate → skip article
-  }
-
-  seenArticles.add(signature);
-  return true; // first time we've seen this article
-});
-
-    // Sort newest first
-    merged.sort((a, b) => {
-      const da = new Date(a.publishedAt || 0).getTime();
-      const db = new Date(b.publishedAt || 0).getTime();
-      return db - da;
-    });
-
-    currentArticles = merged;
-
-    if (merged.length === 0) {
-      console.warn("No real articles found — using fallback.");
-      currentArticles = buildSampleArticles(enabledTopics, true);
-    }
-
-    renderFeed();
-
-  } catch (err) {
-    console.error("Fetch error:", err);
-    currentArticles = buildSampleArticles(enabledTopics, true);
-    renderFeed();
-  }
-}
-
-
-function mapArticle(a) {
-  const source =
-    (a.source && (a.source.name || a.source.title)) ||
-    a.source_id ||
-    a.source ||
-    "Unknown source";
-
-  const url = a.url || a.link || "#";
-
-  const publishedAt =
-    a.publishedAt ||
-    a.pubDate ||
-    a.date ||
-    null;
-
-  const description = a.description || a.content || "";
-
-  const imageUrl = a.urlToImage || a.image_url || a.image || null;
-
-  const topic = inferTopicForArticle(a, description);
-
+function buildSignature(article) {
   return {
-    title: a.title || "Untitled",
-    description,
-    url,
-    source,
-    publishedAt,
-    imageUrl,
-    topic
+    title: (article.title || "").toLowerCase(),
+    desc: (article.description || "").toLowerCase(),
+    url: normalizeUrl(article.url || "")
   };
 }
 
-function inferTopicForArticle(a, fallbackText) {
-  const text = ((a.title || "") + " " + (fallbackText || "")).toLowerCase();
-  const enabledTopics = getEnabledTopics();
-  for (const topic of enabledTopics) {
-    if (text.includes(topic.toLowerCase())) return topic;
+function isDuplicate(sig, others) {
+  for (const o of others) {
+    const titleScore = similarity(sig.title, o.title);
+    const descScore  = similarity(sig.desc, o.desc);
+    const urlMatch   = sig.url === o.url;
+
+    const strongEnough =
+      titleScore > 0.75 ||         // 75% title match
+      descScore > 0.75  ||         // 75% description match
+      (titleScore + descScore)/2 > 0.65 || // overall similarity
+      urlMatch;                    // identical normalized URL
+
+    if (strongEnough) return true;
   }
-  return enabledTopics[0] || null;
+  return false;
 }
 
-function buildSampleArticles(enabledTopics, isErrorFallback = false) {
-  const topics = enabledTopics.length ? enabledTopics : ['Technology', 'World', 'Health'];
-
-  const base = [
-    {
-      title: "AI helps curate your personal 'Lewis News' front page",
-      description: "A look at how lightweight recommendation engines can power privacy-friendly news dashboards.",
-      url: "https://example.com/lewis-news-feature",
-      source: "Lewis Labs",
-      publishedAt: new Date().toISOString(),
-      imageUrl: null
-    },
-    {
-      title: "UK primary care explores smarter information tools",
-      description: "Clinicians test ways of surfacing only the most relevant research updates.",
-      url: "https://example.com/uk-primary-care-news",
-      source: "Open Health Briefing",
-      publishedAt: new Date().toISOString(),
-      imageUrl: null
-    },
-    {
-      title: "Tracking your favourite channels without giving up privacy",
-      description: "How to blend RSS-style feeds with modern web UX.",
-      url: "https://example.com/privacy-first-feeds",
-      source: "Modern Web",
-      publishedAt: new Date().toISOString(),
-      imageUrl: null
-    }
-  ];
-
-  return base.map((a, i) => ({
-    ...a,
-    topic: topics[i % topics.length],
-    isSample: true,
-    isErrorFallback
-  }));
+// Apply deduplication
+const unique = [];
+for (const article of merged) {
+  const sig = buildSignature(article);
+  if (!isDuplicate(sig, unique.map(buildSignature))) {
+    unique.push(article);
+  }
 }
+
+merged = unique;
+
 
 /* ========== FEEDBACK ========== */
 
