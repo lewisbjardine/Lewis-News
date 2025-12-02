@@ -939,13 +939,39 @@ async function fetchNews() {
     // Filter paywalls
     merged = merged.filter(a => a.url && !isPaywalled(a.url));
 
-    // Remove duplicates by URL
-    const seen = new Set();
-    merged = merged.filter(a => {
-      if (seen.has(a.url)) return false;
-      seen.add(a.url);
-      return true;
-    });
+  // ========== IMPROVED DEDUPLICATION ==========
+
+// Helper: normalize URLs
+function normalizeUrl(url) {
+  try {
+    const u = new URL(url);
+    // Remove tracking params & junk
+    u.search = "";
+    // Strip mobile subdomains (m., mobile.)
+    u.hostname = u.hostname.replace(/^m\./, "").replace(/^mobile\./, "");
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+const seenArticles = new Set();
+
+merged = merged.filter(a => {
+  const title = (a.title || "").trim().toLowerCase();
+  const desc = (a.description || "").trim().toLowerCase().slice(0, 80);
+  const url = normalizeUrl(a.url || "");
+
+  // Build a signature that identifies duplicates
+  const signature = `${title}::${desc}::${url}`;
+
+  if (seenArticles.has(signature)) {
+    return false; // duplicate → skip article
+  }
+
+  seenArticles.add(signature);
+  return true; // first time we've seen this article
+});
 
     // Sort newest first
     merged.sort((a, b) => {
