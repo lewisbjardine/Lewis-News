@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lewis News</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- iOS Home Screen Icon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <!-- iOS splash screen -->
+  <link rel="apple-touch-startup-image" href="apple-touch-icon.png">
+
+  <!-- iOS Fullscreen Web App Mode -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Lewis News">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- PWA / Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Disable iOS auto-detected phone numbers -->
+  <meta name="format-detection" content="telephone=no">
+  <meta name="apple-touch-fullscreen" content="yes">
+
+  <style>
+    :root {
+      --bg: #05060a;
+      --bg-alt: #12141d;
+      --bg-card: #161927;
+      --accent: #4f8cff;
+      --accent-soft: rgba(79, 140, 255, 0.15);
+      --accent-strong: #76e4ff;
+      --text: #f7f7ff;
+      --text-muted: #a5acc7;
+      --danger: #ff5c7a;
+      --success: #4ddf83;
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: radial-gradient(circle at top, #1a2340 0, #05060a 45%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a { color: var(--accent-strong); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(to right, rgba(5, 6, 10, 0.96), rgba(9, 11, 23, 0.96));
+      border-bottom: 1px solid var(--border-subtle);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      overflow: hidden;
+      box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.3);
+      background: radial-gradient(circle at 30% 20%, #ffffff 0, #9ea2ff 35%, #3b3e6a 70%, #05060a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #05060a;
+    }
+
+    .brand-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .brand-text span {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav button {
+      border: none;
+      outline: none;
+      padding: 0.5rem 0.9rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border: 1px solid transparent;
+      transition: all 0.18s ease-out;
+    }
+
+    .nav button.active {
+      background: var(--accent-soft);
+      color: var(--text);
+      border-color: rgba(79, 140, 255, 0.7);
+    }
+
+    .nav button.primary {
+      background: var(--accent);
+      color: #05060a;
+      font-weight: 600;
+      border-color: rgba(118, 228, 255, 0.7);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
+    }
+
+    .nav button.primary:hover {
+      background: var(--accent-strong);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    .app-shell {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1rem 1.25rem 2.5rem;
+      flex: 1;
+    }
+
+    .pill-strip {
+      display: flex;
+      gap: 0.35rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .pill {
+      padding: 0.25rem 0.7rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      border: 1px solid var(--border-subtle);
+      background: rgba(7, 9, 19, 0.8);
+      color: var(--text-muted);
+      display: inline-flex;
+      gap: 0.35rem;
+      align-items: center;
+    }
+
+    .pill.topic-pill {
+      cursor: pointer;
+    }
+
+    .pill.topic-pill.active {
+      border-color: rgba(79, 140, 255, 0.9);
+      background: var(--accent-soft);
+      color: var(--text);
+    }
+
+    .pill.small {
+      font-size: 0.7rem;
+      padding: 0.18rem 0.55rem;
+    }
+
+    .pill .indicator {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-strong);
+    }
+
+    .view {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .feed-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(260px, 1.4fr);
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 900px) {
+      .feed-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, rgba(79, 140, 255, 0.16), rgba(6, 9, 24, 0.95));
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .card-subtle {
+      background: rgba(5, 7, 16, 0.9);
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.7);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-header-main {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .topic-chip {
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--accent-soft);
+      background: rgba(5, 7, 16, 0.9);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent-strong);
+    }
+
+    .article-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .article-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .article-description {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+    }
+
+    .article-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .feedback-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
+      background: rgba(3, 5, 12, 0.9);
+      padding: 0.18rem 0.25rem;
+    }
+
+    .feedback-group-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      padding: 0 0.4rem;
+    }
+
+    .feedback-btn {
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.2rem 0.4rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.15rem;
+      transition: all 0.14s ease-out;
+    }
+
+    .feedback-btn:hover {
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text);
+    }
+
+    .feedback-btn.positive.active {
+      background: rgba(77, 223, 131, 0.2);
+      color: var(--success);
+    }
+
+    .feedback-btn.negative.active {
+      background: rgba(255, 92, 122, 0.16);
+      color: var(--danger);
+    }
+
+    .feedback-btn.follow.active {
+      background: rgba(79, 140, 255, 0.22);
+      color: var(--accent-strong);
+    }
+
+    .article-link {
+      padding: 0.32rem 0.9rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(118, 228, 255, 0.6);
+      background: rgba(4, 9, 30, 0.9);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .article-link:hover {
+      background: var(--accent-strong);
+      color: #05060a;
+      text-decoration: none;
+    }
+
+    .sidebar-section {
+      margin-bottom: 1rem;
+    }
+
+    .sidebar-section h3 {
+      margin: 0 0 0.4rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+    }
+
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .tag-cloud .pill {
+      cursor: pointer;
+    }
+
+    .tag-cloud .pill.active {
+      border-color: rgba(79, 140, 255, 0.9);
+      background: var(--accent-soft);
+      color: var(--text);
+    }
+
+    .empty-state {
+      padding: 1.25rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .channel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+
+    .channel-card {
+      background: rgba(6, 9, 24, 0.94);
+      border-radius: var(--radius-lg);
+      padding: 0.9rem;
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: all 0.16s ease-out;
+    }
+
+    .channel-card:hover {
+      border-color: rgba(79, 140, 255, 0.7);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.7);
+      transform: translateY(-2px);
+    }
+
+    .channel-chip {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: radial-gradient(circle at top, rgba(118,228,255,0.9), rgba(79,140,255,0.2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #05060a;
+      font-size: 1.1rem;
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+    .channel-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .channel-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .manage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+
+    .list-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.4rem 0.2rem;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+    }
+
+    .list-item-name {
+      font-size: 0.85rem;
+    }
+
+    .weight-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.15rem;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .weight-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .weight-dot.active {
+      background: var(--accent-strong);
+    }
+
+    .toggle-buttons {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .toggle-btn {
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
+      background: rgba(3, 5, 12, 0.9);
+      color: var(--text-muted);
+      padding: 0.18rem 0.5rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      transition: all 0.16s ease-out;
+    }
+
+    .toggle-btn.active {
+      background: rgba(79, 140, 255, 0.2);
+      border-color: rgba(79, 140, 255, 0.8);
+      color: var(--accent-strong);
+    }
+
+    .toggle-btn.negative {
+      border-color: rgba(255, 92, 122, 0.4);
+    }
+
+    .toggle-btn.negative.active {
+      background: rgba(255, 92, 122, 0.16);
+      color: var(--danger);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+
+    .modal {
+      max-width: 520px;
+      width: 100%;
+      background: radial-gradient(circle at top, rgba(79,140,255,0.2), rgba(5,6,14,0.98));
+      border-radius: 24px;
+      padding: 1.25rem 1.4rem 1.1rem;
+      border: 1px solid rgba(88,164,255,0.6);
+      box-shadow: 0 26px 60px rgba(0,0,0,0.7);
+    }
+
+    .modal-header {
+      display: flex;
+      gap: 0.9rem;
+      align-items: center;
+      margin-bottom: 0.65rem;
+    }
+
+    .modal-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5,6,14,0.95);
+      border: 1px solid rgba(118,228,255,0.6);
+      font-size: 1.2rem;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .modal-header p {
+      margin: 0.15rem 0 0;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .modal-body {
+      margin-bottom: 0.75rem;
+    }
+
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.4rem;
+    }
+
+    .topic-select {
+      border-radius: var(--radius-md);
+      padding: 0.5rem 0.55rem;
+      border: 1px solid var(--border-subtle);
+      background: rgba(3,5,12,0.96);
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      transition: all 0.16s ease-out;
+    }
+
+    .topic-select span.label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .topic-select span.badge {
+      font-size: 0.7rem;
+      padding: 0.05rem 0.4rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-muted);
+    }
+
+    .topic-select.active {
+      border-color: rgba(79,140,255,0.9);
+      background: var(--accent-soft);
+      box-shadow: 0 0 0 1px rgba(79,140,255,0.5);
+    }
+
+    .topic-select.active span.badge {
+      border-color: rgba(118,228,255,0.8);
+      color: var(--accent-strong);
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.4rem;
+    }
+
+    .modal-footer small {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .btn {
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
+      padding: 0.45rem 0.9rem;
+      font-size: 0.8rem;
+      background: rgba(5,7,16,0.95);
+      color: var(--text);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.16s ease-out;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: rgba(118,228,255,0.7);
+      color: #05060a;
+      font-weight: 600;
+    }
+
+    .btn.primary:hover {
+      background: var(--accent-strong);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    .btn.subtle:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    .muted {
+      color: var(--text-muted);
+    }
+
+    .badge-soft {
+      padding: 0.1rem 0.45rem;
+      border-radius: var(--radius-pill);
+      background: rgba(79,140,255,0.15);
+      border: 1px solid rgba(79,140,255,0.5);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-avatar" title="Lewis">
+        <img src="lewis-avatar.png" alt="Lewis" onerror="this.style.display='none'; this.parentElement.textContent='LJ';" />
+      </div>
+      <div class="brand-text">
+        <h1>Lewis News</h1>
+        <span>Curated just for you</span>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" data-view="feed-view">
+        <span class="icon">📰</span> Feed
+      </button>
+      <button class="nav-btn" data-view="channels-view">
+        <span class="icon">📡</span> Channels
+      </button>
+      <button class="nav-btn" data-view="manage-view">
+        <span class="icon">⚙️</span> Manage
+      </button>
+      <button id="refreshButton" class="primary">
+        <span class="icon">↻</span> Refresh
+      </button>
+    </nav>
+  </header>
+
+  <main class="app-shell">
+    <section id="feed-view" class="view active">
+      <div class="pill-strip" id="topicPillStrip">
+        <span class="pill-strip-label">Topics</span>
+      </div>
+
+      <div class="feed-grid">
+        <div>
+          <div id="feedContainer">
+          </div>
+        </div>
+        <aside>
+          <div class="card card-subtle sidebar-section">
+            <h3>Quick filters</h3>
+            <div id="sidebarTopicCloud" class="tag-cloud"></div>
+          </div>
+          <div class="card card-subtle sidebar-section">
+            <h3>Followed channels</h3>
+            <div id="sidebarChannelCloud" class="tag-cloud"></div>
+          </div>
+          <div class="card card-subtle sidebar-section">
+            <h3>About Lewis News</h3>
+            <p class="muted" style="font-size: 0.8rem;">
+              A personal news dashboard that learns from your feedback. No ads. No paywalls. Just stories that matter to you.
+            </p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="channels-view" class="view">
+      <div class="card card-subtle" style="margin-bottom: 1rem;">
+        <div class="card-header">
+          <div>
+            <div class="badge-soft">Channels</div>
+            <h2 style="margin: 0.4rem 0 0; font-size: 1rem;">Your followed sources</h2>
+          </div>
+          <div class="muted" style="font-size: 0.8rem;">
+            Tap a channel to see a dedicated feed from that source.
+          </div>
+        </div>
+      </div>
+
+      <div class="channel-grid" id="channelGrid"></div>
+      <div id="channelEmptyState" class="empty-state" style="display:none;">
+        You haven’t followed any channels yet.<br/>
+        Use the ➕ icon next to an article to follow its source.
+      </div>
+      <div id="channelArticles" style="margin-top: 1.25rem;"></div>
+    </section>
+
+    <section id="manage-view" class="view">
+      <div class="manage-grid">
+        <div class="card card-subtle">
+          <div class="card-header">
+            <div>
+              <div class="badge-soft">Topics</div>
+              <h2 style="margin: 0.4rem 0 0; font-size: 1rem;">Fine-tune your interests</h2>
+            </div>
+          </div>
+          <div id="manageTopicsList"></div>
+        </div>
+
+        <div class="card card-subtle">
+          <div class="card-header">
+            <div>
+              <div class="badge-soft">Channels</div>
+              <h2 style="margin: 0.4rem 0 0; font-size: 1rem;">Control your sources</h2>
+            </div>
+          </div>
+          <div id="manageChannelsList"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="topicModalBackdrop" class="modal-backdrop" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-icon">🎯</div>
+        <div>
+          <h2>What do you want to read about?</h2>
+          <p>Pick a few topics to get your personalised Lewis News feed started.</p>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div class="topic-grid" id="topicSelectionGrid"></div>
+      </div>
+
+      <div class="modal-footer">
+        <small>Tip: you can always tweak this later in the <strong>Manage</strong> tab.</small>
+        <button id="topicModalSaveBtn" class="btn primary">
+          <span class="icon">✅</span> Start reading
+        </button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ========== CONFIGURATION ========== */
+
+const NEWS_API_ENDPOINT = 'https://YOUR_NEWS_API_ENDPOINT_HERE';
+const NEWS_API_KEY = 'YOUR_API_KEY_HERE';
+
+const PAYWALLED_DOMAINS = [
+  'nytimes.com',
+  'ft.com',
+  'wsj.com',
+  'economist.com',
+  'bloomberg.com',
+  'telegraph.co.uk',
+  'thetimes.co.uk'
+];
+
+const DEFAULT_TOPICS = [
+  'World', 'UK', 'Politics', 'Technology', 'Science',
+  'Health', 'Business', 'Finance', 'Entertainment',
+  'Music', 'Sport', 'Gaming', 'Climate', 'Medicine'
+];
+
+const STORAGE_KEY = 'lewisNewsStateV1';
+
+let state = {
+  topics: {},
+  channels: {},
+};
+
+let currentView = 'feed-view';
+let currentChannelFilter = null;
+let currentArticles = [];
+
+/* ========== STORAGE FUNCTIONS ========== */
+
+function loadState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      state = {
+        topics: parsed.topics || {},
+        channels: parsed.channels || {}
+      };
+    } catch (e) { console.warn("Failed to parse state", e); }
+  }
+
+  if (Object.keys(state.topics).length === 0) {
+    DEFAULT_TOPICS.forEach(t => {
+      state.topics[t] = { enabled: false, weight: 1 };
+    });
+  }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  renderAll();
+}
+
+function getEnabledTopics() {
+  return Object.entries(state.topics)
+    .filter(([_, val]) => val.enabled && (val.weight ?? 0) > 0)
+    .sort((a, b) => (b[1].weight ?? 1) - (a[1].weight ?? 1))
+    .map(([topic]) => topic);
+}
+
+/* ========== PAYWALL CHECKS ========== */
+
+function isPaywalled(url) {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '');
+    return PAYWALLED_DOMAINS.some(d => host.endsWith(d));
+  } catch {
+    return false;
+  }
+}
+
+/* ========== FETCH NEWS ========== */
+
+async function fetchNews() {
+  const enabledTopics = getEnabledTopics();
+
+  if (!enabledTopics.length) {
+    currentArticles = [];
+    renderFeed();
+    return;
+  }
+
+  if (!NEWS_API_ENDPOINT.includes('http') ||
+      NEWS_API_ENDPOINT.includes('YOUR_NEWS_API_ENDPOINT_HERE')) {
+    console.warn("Using offline sample feed");
+    currentArticles = buildSampleArticles(enabledTopics);
+    renderFeed();
+    return;
+  }
+
+  const topicQuery = enabledTopics.join(" OR ");
+  try {
+    const url =
+      NEWS_API_ENDPOINT +
+      '?q=' + encodeURIComponent(topicQuery) +
+      '&language=en' +
+      '&pageSize=50' +
+      '&apiKey=' + encodeURIComponent(NEWS_API_KEY);
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Network error " + res.status);
+    const data = await res.json();
+
+    const rawArticles = data.articles || data.results || [];
+    currentArticles = rawArticles
+      .map(mapArticle)
+      .filter(a => a.url && !isPaywalled(a.url));
+
+    renderFeed();
+
+  } catch (err) {
+    console.error("Error fetching news", err);
+    currentArticles = buildSampleArticles(enabledTopics, true);
+    renderFeed();
+  }
+}
+
+function mapArticle(a) {
+  const source =
+    (a.source && (a.source.name || a.source.title)) ||
+    a.source_id ||
+    a.source ||
+    "Unknown source";
+
+  const url = a.url || a.link || "#";
+
+  const publishedAt =
+    a.publishedAt ||
+    a.pubDate ||
+    a.date ||
+    null;
+
+  const description = a.description || a.content || "";
+
+  const imageUrl = a.urlToImage || a.image_url || a.image || null;
+
+  const topic = inferTopicForArticle(a, description);
+
+  return {
+    title: a.title || "Untitled",
+    description,
+    url,
+    source,
+    publishedAt,
+    imageUrl,
+    topic
+  };
+}
+
+function inferTopicForArticle(a, fallbackText) {
+  const text = ((a.title || "") + " " + (fallbackText || "")).toLowerCase();
+  const enabledTopics = getEnabledTopics();
+  for (const topic of enabledTopics) {
+    if (text.includes(topic.toLowerCase())) return topic;
+  }
+  return enabledTopics[0] || null;
+}
+
+function buildSampleArticles(enabledTopics, isErrorFallback = false) {
+  const topics = enabledTopics.length ? enabledTopics : ['Technology', 'World', 'Health'];
+
+  const base = [
+    {
+      title: "AI helps curate your personal 'Lewis News' front page",
+      description: "A look at how lightweight recommendation engines can power privacy-friendly news dashboards.",
+      url: "https://example.com/lewis-news-feature",
+      source: "Lewis Labs",
+      publishedAt: new Date().toISOString(),
+      imageUrl: null
+    },
+    {
+      title: "UK primary care explores smarter information tools",
+      description: "Clinicians test ways of surfacing only the most relevant research updates.",
+      url: "https://example.com/uk-primary-care-news",
+      source: "Open Health Briefing",
+      publishedAt: new Date().toISOString(),
+      imageUrl: null
+    },
+    {
+      title: "Tracking your favourite channels without giving up privacy",
+      description: "How to blend RSS-style feeds with modern web UX.",
+      url: "https://example.com/privacy-first-feeds",
+      source: "Modern Web",
+      publishedAt: new Date().toISOString(),
+      imageUrl: null
+    }
+  ];
+
+  return base.map((a, i) => ({
+    ...a,
+    topic: topics[i % topics.length],
+    isSample: true,
+    isErrorFallback
+  }));
+}
+
+/* ========== FEEDBACK ========== */
+
+function handleThumbsUp(topic) {
+  if (!topic) return;
+  const t = state.topics[topic] || { enabled: true, weight: 1 };
+  t.enabled = true;
+  t.weight = Math.min((t.weight ?? 1) + 1, 5);
+  state.topics[topic] = t;
+  saveState();
+  fetchNews();
+}
+
+function handleThumbsDown(topic) {
+  if (!topic) return;
+  const t = state.topics[topic] || { enabled: true, weight: 1 };
+  t.weight = Math.max((t.weight ?? 1) - 1, 0);
+  if (t.weight === 0) t.enabled = false;
+  state.topics[topic] = t;
+  saveState();
+  fetchNews();
+}
+
+function handleFollowChannel(channel) {
+  if (!channel) return;
+  const existing = state.channels[channel] || { liked: false, enabled: true };
+  existing.liked = !existing.liked;
+  existing.enabled = existing.liked ? true : existing.enabled;
+  state.channels[channel] = existing;
+  saveState();
+}
+
+/* ========== RENDERING ========== */
+
+function renderAll() {
+  renderTopicPills();
+  renderSidebar();
+  renderManageView();
+  renderChannelsView();
+  renderFeed();
+}
+
+function setView(viewId) {
+  currentView = viewId;
+  document.querySelectorAll('.view').forEach(v => {
+    v.classList.toggle('active', v.id === viewId);
+  });
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === viewId);
+  });
+
+  if (viewId !== 'channels-view') {
+    currentChannelFilter = null;
+  }
+
+  if (viewId === 'feed-view') renderFeed();
+  else if (viewId === 'channels-view') renderChannelsView();
+}
+
+function renderTopicPills() {
+  const strip = document.getElementById('topicPillStrip');
+  strip.querySelectorAll('.topic-pill').forEach(el => el.remove());
+
+  Object.entries(state.topics).forEach(([topic, val]) => {
+    const pill = document.createElement('button');
+    pill.className = 'pill topic-pill' + (val.enabled ? ' active' : '');
+    pill.textContent = topic;
+    pill.title = val.enabled ? "Click to mute this topic" : "Click to enable this topic";
+    pill.addEventListener('click', () => {
+      val.enabled = !val.enabled;
+      if (val.enabled && (val.weight ?? 0) === 0) val.weight = 1;
+      state.topics[topic] = val;
+      saveState();
+      fetchNews();
+    });
+    strip.appendChild(pill);
+  });
+}
+
+function renderSidebar() {
+  const topicCloud = document.getElementById('sidebarTopicCloud');
+  const channelCloud = document.getElementById('sidebarChannelCloud');
+  topicCloud.innerHTML = '';
+  channelCloud.innerHTML = '';
+
+  const enabledTopics = getEnabledTopics();
+
+  if (!enabledTopics.length) {
+    topicCloud.innerHTML = '<span class="muted" style="font-size:0.8rem;">No topics selected.</span>';
+  } else {
+    enabledTopics.forEach(topic => {
+      const pill = document.createElement('div');
+      pill.className = 'pill small active';
+      pill.textContent = topic;
+      pill.addEventListener('click', () => handleThumbsDown(topic));
+      topicCloud.appendChild(pill);
+    });
+  }
+
+  const likedChannels = Object.entries(state.channels)
+    .filter(([_, info]) => info.liked && info.enabled);
+
+  if (!likedChannels.length) {
+    channelCloud.innerHTML = '<span class="muted" style="font-size:0.8rem;">Follow channels via ➕ button.</span>';
+  } else {
+    likedChannels.forEach(([name]) => {
+      const pill = document.createElement('div');
+      pill.className = 'pill small active';
+      pill.innerHTML = `<span class="indicator"></span>${name}`;
+      pill.addEventListener('click', () => {
+        setView('channels-view');
+        showChannelFeed(name);
+      });
+      channelCloud.appendChild(pill);
+    });
+  }
+}
+
+function renderFeed() {
+  const container = document.getElementById('feedContainer');
+  container.innerHTML = '';
+
+  const filtered = currentChannelFilter
+    ? currentArticles.filter(a => a.source === currentChannelFilter)
+    : currentArticles;
+
+  if (!filtered.length) {
+    container.innerHTML = `
+      <div class="card card-subtle">
+        <div class="empty-state">
+          No articles yet.<br/>Try selecting topics or hit Refresh.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  filtered.forEach(article => {
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.innerHTML = buildArticleHTML(article);
+    container.appendChild(card);
+
+    const topic = article.topic;
+    card.querySelector('.feedback-btn.positive').addEventListener('click', () => handleThumbsUp(topic));
+    card.querySelector('.feedback-btn.negative').addEventListener('click', () => handleThumbsDown(topic));
+    card.querySelector('.feedback-btn.follow').addEventListener('click', () => handleFollowChannel(article.source));
+  });
+}
+
+function buildArticleHTML(article) {
+  const topic = article.topic || 'General';
+  const topicInfo = state.topics[topic] || { enabled: false, weight: 1 };
+  const channelInfo = state.channels[article.source] || { liked: false, enabled: true };
+
+  const published = article.publishedAt
+    ? new Date(article.publishedAt).toLocaleString(undefined, {
+        weekday: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        day: "2-digit",
+        month: "short"
+      })
+    : "Just now";
+
+  const weightDots = Array.from({ length: 5 }, (_, i) =>
+    `<span class="weight-dot ${i < (topicInfo.weight || 1) ? 'active' : ''}"></span>`
+  ).join('');
+
+  const channelLiked = channelInfo.liked ? 'active' : '';
+  return `
+    <div class="card-header">
+      <div class="card-header-main">
+        <span class="topic-chip">${escapeHtml(topic)}</span>
+        <h2 class="article-title">${escapeHtml(article.title)}</h2>
+      </div>
+      <div class="weight-indicator">${weightDots}</div>
+    </div>
+
+    <div class="article-meta">
+      <span>📡 <strong>${escapeHtml(article.source)}</strong></span>
+      <span>🕒 ${escapeHtml(published)}</span>
+      ${article.isSample ? '<span>🔧 Sample</span>' : ''}
+    </div>
+
+    <div class="article-description">
+      ${escapeHtml(article.description || '')}
+    </div>
+
+    <div class="article-footer">
+      <div class="feedback-group">
+        <span class="feedback-group-label">Tune</span>
+        <button class="feedback-btn positive">👍 <span>More</span></button>
+        <button class="feedback-btn negative">👎 <span>Less</span></button>
+        <button class="feedback-btn follow ${channelLiked}">➕ <span>${channelLiked ? 'Following' : 'Channel'}</span></button>
+      </div>
+
+      <a href="${article.url}" target="_blank" class="article-link">
+        <span>Open</span> <span class="icon">↗</span>
+      </a>
+    </div>
+  `;
+}
+
+/* ========== CHANNELS VIEW ========== */
+
+function renderChannelsView() {
+  const grid = document.getElementById('channelGrid');
+  const emptyState = document.getElementById('channelEmptyState');
+  const channelArticlesContainer = document.getElementById('channelArticles');
+
+  grid.innerHTML = '';
+  channelArticlesContainer.innerHTML = '';
+
+  const likedChannels = Object.entries(state.channels)
+    .filter(([_, info]) => info.liked && info.enabled);
+
+  if (!likedChannels.length) {
+    emptyState.style.display = 'block';
+    return;
+  }
+
+  emptyState.style.display = 'none';
+
+  likedChannels.forEach(([name, info]) => {
+    const card = document.createElement('div');
+    card.className = 'channel-card';
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:0.6rem;">
+        <div class="channel-chip">${escapeHtml(getChannelInitials(name))}</div>
+        <div>
+          <div class="channel-name">${escapeHtml(name)}</div>
+          <div class="channel-meta">Tap to view this channel</div>
+        </div>
+      </div>
+      <div class="channel-meta">
+        Status: <strong>${info.enabled ? 'Enabled' : 'Muted'}</strong>
+      </div>
+    `;
+    card.addEventListener('click', () => showChannelFeed(name));
+    grid.appendChild(card);
+  });
+}
+
+function getChannelInitials(name) {
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function showChannelFeed(channelName) {
+  currentChannelFilter = channelName;
+  setView('channels-view');
+
+  const container = document.getElementById('channelArticles');
+  const filtered = currentArticles.filter(a => a.source === channelName);
+
+  if (!filtered.length) {
+    container.innerHTML = `
+      <div class="card card-subtle" style="margin-top:1rem;">
+        <div class="empty-state">
+          No recent articles from <strong>${escapeHtml(channelName)}</strong>.<br/>
+          Try Refresh.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="card card-subtle" style="margin-top:1rem;margin-bottom:0.75rem;">
+      <div class="card-header">
+        <div>
+          <div class="badge-soft">Channel feed</div>
+          <h2 style="margin:0.4rem 0 0;font-size:1rem;">${escapeHtml(channelName)}</h2>
+        </div>
+        <button class="btn subtle" onclick="setView('feed-view')">← Back</button>
+      </div>
+    </div>
+  `;
+
+  filtered.forEach(article => {
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.innerHTML = buildArticleHTML(article);
+    container.appendChild(card);
+
+    const topic = article.topic;
+    card.querySelector('.feedback-btn.positive').addEventListener('click', () => handleThumbsUp(topic));
+    card.querySelector('.feedback-btn.negative').addEventListener('click', () => handleThumbsDown(topic));
+    card.querySelector('.feedback-btn.follow').addEventListener('click', () => handleFollowChannel(article.source));
+  });
+}
+
+/* ========== MANAGE VIEW ========== */
+
+function renderManageView() {
+  const topicsContainer = document.getElementById('manageTopicsList');
+  const channelsContainer = document.getElementById('manageChannelsList');
+
+  topicsContainer.innerHTML = '';
+  channelsContainer.innerHTML = '';
+
+  const topicEntries = Object.entries(state.topics)
+    .sort((a, b) => a[0].localeCompare(b[0]));
+
+  if (!topicEntries.length) {
+    topicsContainer.innerHTML = '<div class="empty-state">No topics configured.</div>';
+  } else {
+    topicEntries.forEach(([topic, val]) => {
+      const row = document.createElement('div');
+      row.className = 'list-item-row';
+
+      const weightDots = Array.from({ length: 5 }, (_, i) =>
+        `<span class="weight-dot ${i < (val.weight || 1) ? 'active' : ''}"></span>`
+      ).join('');
+
+      row.innerHTML = `
+        <div>
+          <div class="list-item-name">${escapeHtml(topic)}</div>
+          <div class="weight-indicator">${weightDots}</div>
+        </div>
+        <div class="toggle-buttons">
+          <button class="toggle-btn ${val.enabled ? 'active' : ''}">
+            ${val.enabled ? 'On' : 'Off'}
+          </button>
+          <button class="toggle-btn negative">−</button>
+        </div>
+      `;
+
+      row.querySelector('.toggle-btn:not(.negative)').addEventListener('click', () => {
+        val.enabled = !val.enabled;
+        if (val.enabled && (val.weight ?? 0) === 0) val.weight = 1;
+        state.topics[topic] = val;
+        saveState();
+        fetchNews();
+      });
+
+      row.querySelector('.toggle-btn.negative').addEventListener('click', () => {
+        delete state.topics[topic];
+        saveState();
+        fetchNews();
+      });
+
+      topicsContainer.appendChild(row);
+    });
+  }
+
+  const channelEntries = Object.entries(state.channels)
+    .sort((a, b) => a[0].localeCompare(b[0]));
+
+  if (!channelEntries.length) {
+    channelsContainer.innerHTML = '<div class="empty-state">No channels followed.</div>';
+  } else {
+    channelEntries.forEach(([name, info]) => {
+      const row = document.createElement('div');
+      row.className = 'list-item-row';
+
+      row.innerHTML = `
+        <div>
+          <div class="list-item-name">${escapeHtml(name)}</div>
+          <div class="channel-meta">${info.liked ? 'Liked' : 'Discovered'}</div>
+        </div>
+        <div class="toggle-buttons">
+          <button class="toggle-btn ${info.enabled ? 'active' : ''}">
+            ${info.enabled ? 'On' : 'Muted'}
+          </button>
+          <button class="toggle-btn negative">−</button>
+        </div>
+      `;
+
+      row.querySelector('.toggle-btn:not(.negative)').addEventListener('click', () => {
+        info.enabled = !info.enabled;
+        state.channels[name] = info;
+        saveState();
+      });
+
+      row.querySelector('.toggle-btn.negative').addEventListener('click', () => {
+        delete state.channels[name];
+        saveState();
+      });
+
+      channelsContainer.appendChild(row);
+    });
+  }
+}
+
+/* ========== MODAL ========== */
+
+function showTopicModal() {
+  const backdrop = document.getElementById('topicModalBackdrop');
+  const grid = document.getElementById('topicSelectionGrid');
+
+  const selected = new Set(
+    Object.entries(state.topics)
+      .filter(([_, v]) => v.enabled)
+      .map(([topic]) => topic)
+  );
+
+  grid.innerHTML = '';
+
+  DEFAULT_TOPICS.forEach(topic => {
+    const btn = document.createElement('button');
+    btn.className = 'topic-select' + (selected.has(topic) ? ' active' : '');
+    btn.innerHTML = `
+      <span class="label">${escapeHtml(topic)}</span>
+      <span class="badge">${selected.has(topic) ? 'Selected' : 'Tap to add'}</span>
+    `;
+
+    btn.addEventListener('click', () => {
+      if (selected.has(topic)) selected.delete(topic);
+      else selected.add(topic);
+
+      btn.classList.toggle('active');
+      btn.querySelector('.badge').textContent =
+        selected.has(topic) ? 'Selected' : 'Tap to add';
+    });
+
+    grid.appendChild(btn);
+  });
+
+  document.getElementById('topicModalSaveBtn').onclick = () => {
+    Object.keys(state.topics).forEach(t => {
+      state.topics[t].enabled = false;
+    });
+
+    selected.forEach(topic => {
+      if (!state.topics[topic]) {
+        state.topics[topic] = { enabled: true, weight: 3 };
+      } else {
+        state.topics[topic].enabled = true;
+        if ((state.topics[topic].weight ?? 0) === 0)
+          state.topics[topic].weight = 3;
+      }
+    });
+
+    saveState();
+    backdrop.style.display = 'none';
+    fetchNews();
+  };
+
+  backdrop.style.display = 'flex';
+}
+
+/* ========== UTILITIES ========== */
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/* ========== INIT ========== */
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  renderAll();
+
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => setView(btn.dataset.view));
+  });
+
+  document.getElementById('refreshButton').addEventListener('click', () => {
+    fetchNews();
+  });
+
+  if (!getEnabledTopics().length) {
+    showTopicModal();
+  } else {
+    fetchNews();
+  }
+
+  document.querySelector('.brand').addEventListener('dblclick', showTopicModal);
+});
+</script>
+
+</body>
+</html>
