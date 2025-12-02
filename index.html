@@ -902,27 +902,26 @@ async function fetchNews() {
     return;
   }
 
-  if (!NEWS_API_ENDPOINT.includes('http') ||
-      NEWS_API_ENDPOINT.includes('YOUR_NEWS_API_ENDPOINT_HERE')) {
-    console.warn("Using offline sample feed");
-    currentArticles = buildSampleArticles(enabledTopics);
-    renderFeed();
-    return;
-  }
+  // NewsData.io expects space-separated keywords (NOT "topic1 OR topic2")
+  const topicQuery = enabledTopics.join(" ");
 
-  const topicQuery = enabledTopics.join(" OR ");
   try {
     const url =
       NEWS_API_ENDPOINT +
-'?apikey=' + pub_90264080fe534732a4b9a97a3d726501 +
-'&q=' + encodeURIComponent(topicQuery) +
-'&language=en&country=gb';
+      '?apikey=' + NEWS_API_KEY +
+      '&q=' + encodeURIComponent(topicQuery) +
+      '&language=en' +
+      '&country=gb';
+
+    console.log("Fetching:", url);  // Debug
 
     const res = await fetch(url);
     if (!res.ok) throw new Error("Network error " + res.status);
-    const data = await res.json();
 
-    const rawArticles = data.articles || data.results || [];
+    const data = await res.json();
+    console.log("Raw API data:", data); // Debug
+
+    const rawArticles = data.results || [];
     currentArticles = rawArticles
       .map(mapArticle)
       .filter(a => a.url && !isPaywalled(a.url));
@@ -935,6 +934,7 @@ async function fetchNews() {
     renderFeed();
   }
 }
+
 
 function mapArticle(a) {
   const source =
